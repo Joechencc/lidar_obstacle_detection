@@ -1,0 +1,4 @@
+<launch>
+        <node name="main" pkg="LIDAR-Obstacle-Detection" type="main">
+	</node>
+</launch>
