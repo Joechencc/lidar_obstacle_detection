@@ -18,7 +18,18 @@
 #include <typeinfo>
 #include "ros/ros.h"
 #include <sensor_msgs/PointCloud2.h>
+
 #define _GLIBCXX_USE_NANOSLEEP  
+
+class myImages {
+  public:
+    void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg);
+
+    std::vector<boost::filesystem::path> stream;
+    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud;
+    pcl::visualization::PCLVisualizer::Ptr viewer_processing;
+    
+};
 
 struct Color
 {
@@ -342,82 +353,22 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr loadPcd(std::string file)
     return cloud;
 }
 
-void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
-    // viewer_processing->removeAllPointClouds();
-    // viewer_processing->removeAllShapes();
-
-    // cloud = loadPcd((*streamIterator).string());
-    // std::cout << "cloud:::" << typeid(cloud).name()<<std::endl;
-
-    // // Output cloud for downsampled cloud
-    // pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZI>);
-
-    // // Downsample the point cloud to lower memory usage and faster processing
-    // cloud_filtered = downsample_cloud(cloud,0.15f);
-
-    // // Crop point cloud to relevant area
-    // cloud_filtered = crop_cloud(cloud_filtered,Eigen::Vector4f(-21, -7, -3, 1),Eigen::Vector4f( 31, 8, 6, 1));
-
-    // // Remove car roof points 
-    // cloud_filtered = remove_roof(cloud_filtered,Eigen::Vector4f(-1.4,-1.6,-1,1), Eigen::Vector4f(2.5,1.6,-0.4,1));
-
-    // // Segment obstacles and road
-    // std::tuple<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmented_clouds;
-    // segmented_clouds = segment_clouds(cloud_filtered);
-
-    // // Store segmented point clouds in individual PointXYZI cloud
-    // pcl::PointCloud<pcl::PointXYZI>::Ptr road_cloud = std::get<0>(segmented_clouds);
-    // pcl::PointCloud<pcl::PointXYZI>::Ptr obstacle_cloud = std::get<1>(segmented_clouds); 
-
-    // // Render road (segmented from original point cloud) in the viewer
-    // renderPointCloud(viewer_processing,road_cloud,"planeCloud",Color(0,1,0));
-
-    // // Create clusters of obstacle from raw points
-    // std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters = create_clusters(obstacle_cloud);
-
-    // // Render bounding box around obstacles
-    // render_all_boxes(viewer_processing,clusters);
-
-    // // Sleep for 40ms to slow down the viewer
-    // std::this_thread::sleep_for(std::chrono::milliseconds(40));
-
-    // // Go to the next point cloud
-    // streamIterator++;
-
-    // // If stream reaches the last point cloud, then start again from the first point cloud
-    // if(streamIterator == stream.end())
-    //     streamIterator = stream.begin();
-    std::cout<<"haha"<< std::endl;
-}
-
-int main(int argc, char **argv){
-
-    std::vector<boost::filesystem::path> stream = streamPcd("/home/chen1804/catkin_workspace/src/LIDAR-Obstacle-Detection/data");
-    auto streamIterator = stream.begin();
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud;
-
-    pcl::visualization::PCLVisualizer::Ptr viewer_processing (new pcl::visualization::PCLVisualizer ("LIDAR Obstacle Detection"));
-    
-    // Sets Default camera angle to XY or Birds Eye View or Side view or First Person view
-    CameraAngle setAngle = FP;              // XY or BEV or Side or FP
-    initCamera(setAngle, viewer_processing);
-
-    ros::init(argc, argv, "listener");
-    ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("/camera/depth/color/points", 1000, pointcloudCallback);
-
+// void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::vector<boost::filesystem::path>& stream, pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, pcl::visualization::PCLVisualizer::Ptr& viewer_processing) {
+void myImages::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
+    auto streamIterator = this->stream.begin();
+    // std::cout << "streamIterator:::"<< (*streamIterator).string() << std::endl;
     while (!viewer_processing->wasStopped ())
     {
-        viewer_processing->removeAllPointClouds();
-        viewer_processing->removeAllShapes();
+        this->viewer_processing->removeAllPointClouds();
+        this->viewer_processing->removeAllShapes();
 
-        cloud = loadPcd((*streamIterator).string());
+        this->cloud = loadPcd((*streamIterator).string());
 
         // Output cloud for downsampled cloud
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZI>);
 
         // Downsample the point cloud to lower memory usage and faster processing
-        cloud_filtered = downsample_cloud(cloud,0.15f);
+        cloud_filtered = downsample_cloud(this->cloud,0.15f);
 
         // Crop point cloud to relevant area
         cloud_filtered = crop_cloud(cloud_filtered,Eigen::Vector4f(-21, -7, -3, 1),Eigen::Vector4f( 31, 8, 6, 1));
@@ -434,13 +385,13 @@ int main(int argc, char **argv){
         pcl::PointCloud<pcl::PointXYZI>::Ptr obstacle_cloud = std::get<1>(segmented_clouds); 
 
         // Render road (segmented from original point cloud) in the viewer
-        renderPointCloud(viewer_processing,road_cloud,"planeCloud",Color(0,1,0));
+        renderPointCloud(this->viewer_processing,road_cloud,"planeCloud",Color(0,1,0));
 
         // Create clusters of obstacle from raw points
         std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters = create_clusters(obstacle_cloud);
 
         // Render bounding box around obstacles
-        render_all_boxes(viewer_processing,clusters);
+        render_all_boxes(this->viewer_processing,clusters);
 
         // Sleep for 40ms to slow down the viewer
         std::this_thread::sleep_for(std::chrono::milliseconds(40));
@@ -449,14 +400,41 @@ int main(int argc, char **argv){
         streamIterator++;
 
         // If stream reaches the last point cloud, then start again from the first point cloud
-        if(streamIterator == stream.end())
-            streamIterator = stream.begin();
+        if(streamIterator == this->stream.end())
+            streamIterator = this->stream.begin();
 
-        viewer_processing->spinOnce();
-
+        ROS_INFO("I heard !!!!!");
     }
-    // ros::spin();
-    // return 0;
+}
+
+int main(int argc, char **argv){
+
+    myImages myimage_obj;
+    myimage_obj.stream = streamPcd("/home/chen1804/catkin_workspace/src/lidar_obstacle_detection/data");
+
+    pcl::visualization::PCLVisualizer::Ptr viewer_processing (new pcl::visualization::PCLVisualizer ("LIDAR Obstacle Detection"));
+    myimage_obj.viewer_processing = viewer_processing;
+    
+    // Sets Default camera angle to XY or Birds Eye View or Side view or First Person view
+    CameraAngle setAngle = FP;              // XY or BEV or Side or FP
+    initCamera(setAngle, myimage_obj.viewer_processing);
+    
+    // std::vector<boost::filesystem::path> stream = streamPcd("/home/chen1804/catkin_workspace/src/lidar_obstacle_detection/data");
+    // pcl::PointCloud<pcl::PointXYZI>::Ptr cloud;
+
+    // pcl::visualization::PCLVisualizer::Ptr viewer_processing (new pcl::visualization::PCLVisualizer ("LIDAR Obstacle Detection"));
+    
+    // // Sets Default camera angle to XY or Birds Eye View or Side view or First Person view
+    // CameraAngle setAngle = FP;              // XY or BEV or Side or FP
+    // initCamera(setAngle, viewer_processing);
+
+    ros::init(argc, argv, "listener");
+    ros::NodeHandle n;
+    ros::Subscriber sub = n.subscribe("/camera/depth/color/points", 1000, &myImages::pointcloudCallback, &myimage_obj);
+
+    // , stream, cloud, viewer_processing
+    ros::spin();
+    return 0;
 
 
 }

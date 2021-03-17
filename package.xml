@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>LIDAR-Obstacle-Detection</name>
+  <name>lidar_obstacle_detection</name>
   <version>1.0.0</version>
   <description>Modified lidar obstacle detection code.</description>
   <maintainer email="joecc@umich.edu">chao Chen</maintainer>

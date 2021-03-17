@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-project(LIDAR-Obstacle-Detection)
+project(lidar_obstacle_detection)
 
 find_package(PCL 1.2 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp roslaunch nodelet rviz std_msgs std_srvs geometry_msgs sensor_msgs tf laser_geometry message_generation)
