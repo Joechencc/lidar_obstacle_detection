@@ -37,8 +37,9 @@ class myImages {
     std::vector<boost::filesystem::path> stream;
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
     pcl::visualization::PCLVisualizer::Ptr viewer_processing;
-    
+
 };
+
 
 struct Color
 {
