@@ -18,7 +18,6 @@
 #include <typeinfo>
 #include "ros/ros.h"
 #include <sensor_msgs/PointCloud2.h>
-
 #define _GLIBCXX_USE_NANOSLEEP  
 
 class myImages {
@@ -28,8 +27,9 @@ class myImages {
     std::vector<boost::filesystem::path> stream;
     pcl::PointCloud<pcl::PointXYZI>::Ptr cloud;
     pcl::visualization::PCLVisualizer::Ptr viewer_processing;
-    
+
 };
+
 
 struct Color
 {
@@ -364,6 +364,7 @@ void myImages::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
 
         this->cloud = loadPcd((*streamIterator).string());
 
+
         // Output cloud for downsampled cloud
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZI>);
 
@@ -404,6 +405,8 @@ void myImages::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
             streamIterator = this->stream.begin();
 
         ROS_INFO("I heard !!!!!");
+        this->viewer_processing->spinOnce();
+
     }
 }
 
@@ -438,4 +441,5 @@ int main(int argc, char **argv){
 
 
 }
+
 
