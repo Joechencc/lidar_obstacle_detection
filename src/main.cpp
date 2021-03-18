@@ -12,12 +12,21 @@
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
+#include <pcl_ros/transforms.h>
+#include <pcl_ros/point_cloud.h>
+
+
 #include <tuple>
 #include <chrono>
 #include <thread>
 #include <typeinfo>
 #include "ros/ros.h"
 #include <sensor_msgs/PointCloud2.h>
+
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 #define _GLIBCXX_USE_NANOSLEEP  
 
@@ -26,7 +35,7 @@ class myImages {
     void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg);
 
     std::vector<boost::filesystem::path> stream;
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
     pcl::visualization::PCLVisualizer::Ptr viewer_processing;
     
 };
@@ -52,11 +61,11 @@ struct Box
 };
 
 
-Box BoundingBox(pcl::PointCloud<pcl::PointXYZI>::Ptr cluster)
+Box BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
 {
 
     // Find bounding box for one of the clusters
-    pcl::PointXYZI minPoint, maxPoint;
+    pcl::PointXYZ minPoint, maxPoint;
     /*Get min and max coordinates in the cluster*/
     pcl::getMinMax3D(*cluster, minPoint, maxPoint);
 
@@ -102,19 +111,19 @@ void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box box, int id, 
 
 // Function to render objects in the viewer
 
-void renderPointCloud(pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, std::string name, Color color)
+void renderPointCloud(pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std::string name, Color color)
 {
 
 	if(color.r==-1)
 	{
 		// Select color based off of cloud intensity
-		pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZI> intensity_distribution(cloud,"intensity");
-  		viewer->addPointCloud<pcl::PointXYZI>(cloud, intensity_distribution, name);
+		pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZ> intensity_distribution(cloud,"intensity");
+  		viewer->addPointCloud<pcl::PointXYZ>(cloud, intensity_distribution, name);
 	}
 	else
 	{
 		// Select color based off input value
-		viewer->addPointCloud<pcl::PointXYZI> (cloud, name);
+		viewer->addPointCloud<pcl::PointXYZ> (cloud, name);
 		viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, name);
 	}
 
@@ -151,11 +160,11 @@ void initCamera(CameraAngle setAngle, pcl::visualization::PCLVisualizer::Ptr& vi
 }
 
 // Function to downsample the cloud based on Voxel Grid Filter
-pcl::PointCloud<pcl::PointXYZI>::Ptr downsample_cloud(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float leaf_size){
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZI>);
+pcl::PointCloud<pcl::PointXYZ>::Ptr downsample_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float leaf_size){
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
 
 
-    pcl::VoxelGrid<pcl::PointXYZI> voxel_grid_filter;
+    pcl::VoxelGrid<pcl::PointXYZ> voxel_grid_filter;
     voxel_grid_filter.setInputCloud(cloud);
 
     voxel_grid_filter.setLeafSize (leaf_size, leaf_size, leaf_size);
@@ -165,9 +174,9 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr downsample_cloud(pcl::PointCloud<pcl::Point
 }
 
 // Crops the entire point cloud to relevant area
-pcl::PointCloud<pcl::PointXYZI>::Ptr crop_cloud(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, Eigen::Vector4f minPoint, Eigen::Vector4f maxPoint){
+pcl::PointCloud<pcl::PointXYZ>::Ptr crop_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Eigen::Vector4f minPoint, Eigen::Vector4f maxPoint){
 
-    pcl::CropBox<pcl::PointXYZI> crop_box;
+    pcl::CropBox<pcl::PointXYZ> crop_box;
     crop_box.setInputCloud(cloud);
     
 
@@ -180,11 +189,11 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr crop_cloud(pcl::PointCloud<pcl::PointXYZI>:
 }
 
 // Remove roof points since they are not relevant
-pcl::PointCloud<pcl::PointXYZI>::Ptr remove_roof(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,Eigen::Vector4f minPoint, Eigen::Vector4f maxPoint){
+pcl::PointCloud<pcl::PointXYZ>::Ptr remove_roof(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,Eigen::Vector4f minPoint, Eigen::Vector4f maxPoint){
 
     std::vector<int> indices;
 
-    pcl::CropBox<pcl::PointXYZI> roof(true);
+    pcl::CropBox<pcl::PointXYZ> roof(true);
 
     roof.setMin(minPoint);
     roof.setMax(maxPoint);
@@ -197,7 +206,7 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr remove_roof(pcl::PointCloud<pcl::PointXYZI>
     }
 
 
-    pcl::ExtractIndices<pcl::PointXYZI> extract;
+    pcl::ExtractIndices<pcl::PointXYZ> extract;
     extract.setInputCloud(cloud);
     extract.setIndices(inliers);
     extract.setNegative(true);
@@ -211,16 +220,16 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr remove_roof(pcl::PointCloud<pcl::PointXYZI>
 // Segment cloud into road and obstacles
 // The biggest planar surface would be road and RANSAC is used to segment out this part
 
-std::tuple<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segment_clouds(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud){
+std::tuple<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segment_clouds(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
 
     // Declare output clouds
-    pcl::PointCloud<pcl::PointXYZI>::Ptr road_cloud (new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::PointCloud<pcl::PointXYZI>::Ptr obstacle_cloud (new pcl::PointCloud<pcl::PointXYZI>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr road_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr obstacle_cloud (new pcl::PointCloud<pcl::PointXYZ>);
 
     // Declare vars for segmentation
     pcl::PointIndices::Ptr inliers_seg{new pcl::PointIndices};
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
-    pcl::SACSegmentation<pcl::PointXYZI> segmenter;
+    pcl::SACSegmentation<pcl::PointXYZ> segmenter;
 
     // Set parameters
     segmenter.setOptimizeCoefficients(true);
@@ -240,7 +249,7 @@ std::tuple<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>
 
     // Extract road point cloud using indices
 
-	pcl::ExtractIndices<pcl::PointXYZI> extract_seg;
+	pcl::ExtractIndices<pcl::PointXYZ> extract_seg;
 	extract_seg.setInputCloud(cloud);
 	extract_seg.setIndices(inliers_seg);
     
@@ -258,18 +267,18 @@ std::tuple<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>
 
 // Create clusters based on distance of points. 
 // KD Tree based on euclidean distance is used to cluster points into cluster of obstacles
-std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> create_clusters(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud){
+std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> create_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
 
     // Array to store individual clusters
-    std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters;
+    std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters;
 
     // Initialize KD Tree with cloud
-    pcl::search::KdTree<pcl::PointXYZI>::Ptr kd_tree (new pcl::search::KdTree<pcl::PointXYZI>);
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr kd_tree (new pcl::search::KdTree<pcl::PointXYZ>);
     kd_tree->setInputCloud(cloud);
 
     // Declare variables for clustering
     std::vector<pcl::PointIndices> cluster_indices;
-    pcl::EuclideanClusterExtraction<pcl::PointXYZI> ec;
+    pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
 
     // Set parameters for clustering
     ec.setClusterTolerance(0.75);
@@ -284,7 +293,7 @@ std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> create_clusters(pcl::PointClou
     // Append individual clusters to an array
     for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){
 
-        pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZI>);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
 
         for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit){
             cloud_cluster->points.push_back(cloud->points[*pit]);
@@ -306,11 +315,11 @@ std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> create_clusters(pcl::PointClou
 
 
 // Draw bounding boxes around clusters to indicate obstacles
-void render_all_boxes(pcl::visualization::PCLVisualizer::Ptr& viewer, std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters){
+void render_all_boxes(pcl::visualization::PCLVisualizer::Ptr& viewer, std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters){
 
     int clusterId = 0;
 
-    for(pcl::PointCloud<pcl::PointXYZI>::Ptr cluster : clusters)
+    for(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster : clusters)
         {
 
         renderPointCloud(viewer, cluster,"obstCloud"+std::to_string(clusterId),Color(1,1,0));
@@ -340,12 +349,12 @@ std::vector<boost::filesystem::path> streamPcd(std::string dataPath)
 
 // Load point clouds from path
 
-pcl::PointCloud<pcl::PointXYZI>::Ptr loadPcd(std::string file)
+pcl::PointCloud<pcl::PointXYZ>::Ptr loadPcd(std::string file)
 {
 
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZI>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
 
-    if (pcl::io::loadPCDFile<pcl::PointXYZI> (file, *cloud) == -1) //* load the file
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> (file, *cloud) == -1) //* load the file
     {
         PCL_ERROR ("Couldn't read file \n");
     }
@@ -353,64 +362,78 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr loadPcd(std::string file)
     return cloud;
 }
 
-// void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::vector<boost::filesystem::path>& stream, pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, pcl::visualization::PCLVisualizer::Ptr& viewer_processing) {
+// void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::vector<boost::filesystem::path>& stream, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, pcl::visualization::PCLVisualizer::Ptr& viewer_processing) {
 void myImages::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
-    auto streamIterator = this->stream.begin();
+    // auto streamIterator = this->stream.begin();
     // std::cout << "streamIterator:::"<< (*streamIterator).string() << std::endl;
-    while (!viewer_processing->wasStopped ())
-    {
-        this->viewer_processing->removeAllPointClouds();
-        this->viewer_processing->removeAllShapes();
 
-        this->cloud = loadPcd((*streamIterator).string());
+    this->viewer_processing->removeAllPointClouds();
+    this->viewer_processing->removeAllShapes();
 
-        // Output cloud for downsampled cloud
-        pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZI>);
+    // this->cloud = loadPcd((*streamIterator).string());
 
-        // Downsample the point cloud to lower memory usage and faster processing
-        cloud_filtered = downsample_cloud(this->cloud,0.15f);
+    pcl::PCLPointCloud2 pcl_pc2;
+    pcl_conversions::toPCL(*msg,pcl_pc2);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
 
-        // Crop point cloud to relevant area
-        cloud_filtered = crop_cloud(cloud_filtered,Eigen::Vector4f(-21, -7, -3, 1),Eigen::Vector4f( 31, 8, 6, 1));
+    this->cloud = temp_cloud;
 
-        // Remove car roof points 
-        cloud_filtered = remove_roof(cloud_filtered,Eigen::Vector4f(-1.4,-1.6,-1,1), Eigen::Vector4f(2.5,1.6,-0.4,1));
+    // Output cloud for downsampled cloud
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
 
-        // Segment obstacles and road
-        std::tuple<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmented_clouds;
-        segmented_clouds = segment_clouds(cloud_filtered);
+    // Downsample the point cloud to lower memory usage and faster processing
+    cloud_filtered = downsample_cloud(this->cloud,0.15f);
 
-        // Store segmented point clouds in individual PointXYZI cloud
-        pcl::PointCloud<pcl::PointXYZI>::Ptr road_cloud = std::get<0>(segmented_clouds);
-        pcl::PointCloud<pcl::PointXYZI>::Ptr obstacle_cloud = std::get<1>(segmented_clouds); 
+    // Crop point cloud to relevant area
+    cloud_filtered = crop_cloud(cloud_filtered,Eigen::Vector4f(-21, -7, -3, 1),Eigen::Vector4f( 31, 8, 6, 1));
 
-        // Render road (segmented from original point cloud) in the viewer
-        renderPointCloud(this->viewer_processing,road_cloud,"planeCloud",Color(0,1,0));
+    // Remove car roof points 
+    cloud_filtered = remove_roof(cloud_filtered,Eigen::Vector4f(-1.4,-1.6,-1,1), Eigen::Vector4f(2.5,1.6,-0.4,1));
 
-        // Create clusters of obstacle from raw points
-        std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> clusters = create_clusters(obstacle_cloud);
+    // Segment obstacles and road
+    std::tuple<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segmented_clouds;
+    segmented_clouds = segment_clouds(cloud_filtered);
 
-        // Render bounding box around obstacles
-        render_all_boxes(this->viewer_processing,clusters);
+    // Store segmented point clouds in individual PointXYZ cloud
+    pcl::PointCloud<pcl::PointXYZ>::Ptr road_cloud = std::get<0>(segmented_clouds);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr obstacle_cloud = std::get<1>(segmented_clouds);
+    
+    //////////////////////// test
+    // ros::NodeHandle n;
+    // ros::Publisher pc_pub = n.advertise<PointCloud>("downsampled_cloud_road", 1);
+    // pc_pub.publish(*road_cloud);
 
-        // Sleep for 40ms to slow down the viewer
-        std::this_thread::sleep_for(std::chrono::milliseconds(40));
+    // ros::Publisher pc_pub_2 = n.advertise<PointCloud>("downsampled_cloud_obstacle", 1);
+    // pc_pub_2.publish(*obstacle_cloud);
+    // std::cout << "cloud_size:::" <<  cloud_filtered->points.size()<< std::endl;
+    ////////////////////////////// 
 
-        // Go to the next point cloud
-        streamIterator++;
+    // Render road (segmented from original point cloud) in the viewer
+    renderPointCloud(this->viewer_processing,road_cloud,"planeCloud",Color(0,1,0));
 
-        // If stream reaches the last point cloud, then start again from the first point cloud
-        if(streamIterator == this->stream.end())
-            streamIterator = this->stream.begin();
+    // Create clusters of obstacle from raw points
+    std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters = create_clusters(obstacle_cloud);
 
-        ROS_INFO("I heard !!!!!");
-    }
+    // Render bounding box around obstacles
+    render_all_boxes(this->viewer_processing,clusters);
+
+    // Sleep for 40ms to slow down the viewer
+    std::this_thread::sleep_for(std::chrono::milliseconds(40));
+
+    // Go to the next point cloud
+    // streamIterator++;
+
+    // If stream reaches the last point cloud, then start again from the first point cloud
+    // if(streamIterator == this->stream.end())
+    //     streamIterator = this->stream.begin();
+    this->viewer_processing->spinOnce();
+
 }
 
 int main(int argc, char **argv){
 
     myImages myimage_obj;
-    myimage_obj.stream = streamPcd("/home/chen1804/catkin_workspace/src/lidar_obstacle_detection/data");
 
     pcl::visualization::PCLVisualizer::Ptr viewer_processing (new pcl::visualization::PCLVisualizer ("LIDAR Obstacle Detection"));
     myimage_obj.viewer_processing = viewer_processing;
@@ -420,7 +443,7 @@ int main(int argc, char **argv){
     initCamera(setAngle, myimage_obj.viewer_processing);
     
     // std::vector<boost::filesystem::path> stream = streamPcd("/home/chen1804/catkin_workspace/src/lidar_obstacle_detection/data");
-    // pcl::PointCloud<pcl::PointXYZI>::Ptr cloud;
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
 
     // pcl::visualization::PCLVisualizer::Ptr viewer_processing (new pcl::visualization::PCLVisualizer ("LIDAR Obstacle Detection"));
     
@@ -438,4 +461,3 @@ int main(int argc, char **argv){
 
 
 }
-
