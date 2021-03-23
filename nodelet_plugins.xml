@@ -1,0 +1,13 @@
+<library path="lib/libobstacle_detector_nodelets">
+
+  <class name="lidar_obstacle_detection/Detect" 
+         type="lidar_obstacle_detection::DetectNodelet" 
+         base_class_type="nodelet::Nodelet">
+    <description>
+      A panel allowing better visualization with PCL.
+    </description>
+  </class>
+
+
+
+</library>

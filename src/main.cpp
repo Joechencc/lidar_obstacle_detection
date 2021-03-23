@@ -401,12 +401,12 @@ void myImages::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
     pcl::PointCloud<pcl::PointXYZ>::Ptr obstacle_cloud = std::get<1>(segmented_clouds);
     
     //////////////////////// test
-    // ros::NodeHandle n;
-    // ros::Publisher pc_pub = n.advertise<PointCloud>("downsampled_cloud_road", 1);
-    // pc_pub.publish(*road_cloud);
+    ros::NodeHandle n;
+    ros::Publisher pc_pub = n.advertise<PointCloud>("downsampled_cloud_road", 1);
+    pc_pub.publish(*road_cloud);
 
-    // ros::Publisher pc_pub_2 = n.advertise<PointCloud>("downsampled_cloud_obstacle", 1);
-    // pc_pub_2.publish(*obstacle_cloud);
+    ros::Publisher pc_pub_2 = n.advertise<PointCloud>("downsampled_cloud_obstacle", 1);
+    pc_pub_2.publish(*obstacle_cloud);
     // std::cout << "cloud_size:::" <<  cloud_filtered->points.size()<< std::endl;
     ////////////////////////////// 
 
@@ -454,7 +454,7 @@ int main(int argc, char **argv){
 
     ros::init(argc, argv, "listener");
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("/camera/depth/color/points", 1000, &myImages::pointcloudCallback, &myimage_obj);
+    ros::Subscriber sub = n.subscribe("/os_cloud_node/points", 1000, &myImages::pointcloudCallback, &myimage_obj);
 
     // , stream, cloud, viewer_processing
     ros::spin();

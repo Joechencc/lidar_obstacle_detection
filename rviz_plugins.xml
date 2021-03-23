@@ -1,0 +1,11 @@
+<library path="lib/liblidar_obstacle_detection_gui">
+
+  <class name="Detect"
+         type="lidar_obstacle_detection::DetectPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      A panel widget allowing better visualization with PCL.
+    </description>
+
+  </class>
+</library>
