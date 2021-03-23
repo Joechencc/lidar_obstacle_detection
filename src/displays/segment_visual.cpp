@@ -33,9 +33,9 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/displays/segment_visual.h"
+#include "lidar_obstacle_detection/displays/segment_visual.h"
 
-namespace obstacles_display
+namespace lidar_obstacle_display
 {
 
 SegmentVisual::SegmentVisual(Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node) {
@@ -49,7 +49,7 @@ SegmentVisual::~SegmentVisual() {
   scene_manager_->destroySceneNode(frame_node_);
 }
 
-void SegmentVisual::setData(const obstacle_detector::SegmentObstacle& segment) {
+void SegmentVisual::setData(const lidar_obstacle_detection::SegmentObstacle& segment) {
   Ogre::Vector3 p1(segment.first_point.x, segment.first_point.y, 0.0);
   Ogre::Vector3 p2(segment.last_point.x, segment.last_point.y, 0.0);
   line_->addPoint(p1);
@@ -72,5 +72,5 @@ void SegmentVisual::setWidth(float w) {
   line_->setLineWidth(w);
 }
 
-} // end namespace obstacles_display
+} // end namespace lidar_obstacle_display
 

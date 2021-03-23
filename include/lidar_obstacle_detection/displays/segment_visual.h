@@ -36,7 +36,7 @@
 #pragma once
 
 #ifndef Q_MOC_RUN
-#include <obstacle_detector/Obstacles.h>
+#include <lidar_obstacle_detection/Obstacles.h>
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreSceneNode.h>
@@ -46,7 +46,7 @@
 #include <rviz/ogre_helpers/billboard_line.h>
 #endif
 
-namespace obstacles_display
+namespace lidar_obstacle_display
 {
 
 class SegmentVisual
@@ -56,7 +56,7 @@ public:
 
   virtual ~SegmentVisual();
 
-  void setData(const obstacle_detector::SegmentObstacle& segment);
+  void setData(const lidar_obstacle_detection::SegmentObstacle& segment);
   void setFramePosition(const Ogre::Vector3& position);
   void setFrameOrientation(const Ogre::Quaternion& orientation);
   void setColor(float r, float g, float b, float a);
@@ -69,4 +69,4 @@ private:
   Ogre::SceneManager* scene_manager_;
 };
 
-} // end namespace obstacles_display
+} // end namespace lidar_obstacle_display

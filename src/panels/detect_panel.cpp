@@ -33,12 +33,12 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/panels/scans_merger_panel.h"
+#include "lidar_obstacle_detection/panels/detect_panel.h"
 
-using namespace obstacle_detector;
+using namespace lidar_obstacle_detection;
 using namespace std;
 
-ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("scans_merger") {
+DetectPanel::DetectPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("scans_merger") {
   params_cli_ = nh_local_.serviceClient<std_srvs::Empty>("params");
   getParams();
 
@@ -181,14 +181,14 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   evaluateParams();
 }
 
-void ScansMergerPanel::processInputs() {
+void DetectPanel::processInputs() {
   verifyInputs();
   setParams();
   evaluateParams();
   notifyParamsUpdate();
 }
 
-void ScansMergerPanel::verifyInputs() {
+void DetectPanel::verifyInputs() {
   p_active_ = activate_checkbox_->isChecked();
   p_publish_scan_ = scan_checkbox_->isChecked();
   p_publish_pcl_ = pcl_checkbox_->isChecked();
@@ -218,7 +218,7 @@ void ScansMergerPanel::verifyInputs() {
   p_target_frame_id_ = target_frame_id_input_->text().toStdString();
 }
 
-void ScansMergerPanel::setParams() {
+void DetectPanel::setParams() {
   nh_local_.setParam("active", p_active_);
   nh_local_.setParam("publish_scan", p_publish_scan_);
   nh_local_.setParam("publish_pcl", p_publish_pcl_);
@@ -237,7 +237,7 @@ void ScansMergerPanel::setParams() {
   nh_local_.setParam("target_frame_id", p_target_frame_id_);
 }
 
-void ScansMergerPanel::getParams() {
+void DetectPanel::getParams() {
   p_active_ = nh_local_.param("active", false);
   p_publish_scan_ = nh_local_.param("publish_scan", false);
   p_publish_pcl_ = nh_local_.param("publish_pcl", false);
@@ -256,7 +256,7 @@ void ScansMergerPanel::getParams() {
   p_target_frame_id_ = nh_local_.param("target_frame_id", std::string(""));
 }
 
-void ScansMergerPanel::evaluateParams() {
+void DetectPanel::evaluateParams() {
   activate_checkbox_->setChecked(p_active_);
 
   scan_checkbox_->setEnabled(p_active_);
@@ -287,7 +287,7 @@ void ScansMergerPanel::evaluateParams() {
   target_frame_id_input_->setText(QString::fromStdString(p_target_frame_id_));
 }
 
-void ScansMergerPanel::notifyParamsUpdate() {
+void DetectPanel::notifyParamsUpdate() {
   std_srvs::Empty empty;
   if (!params_cli_.call(empty)) {
     p_active_ = false;
@@ -296,13 +296,13 @@ void ScansMergerPanel::notifyParamsUpdate() {
   }
 }
 
-void ScansMergerPanel::save(rviz::Config config) const {
+void DetectPanel::save(rviz::Config config) const {
   rviz::Panel::save(config);
 }
 
-void ScansMergerPanel::load(const rviz::Config& config) {
+void DetectPanel::load(const rviz::Config& config) {
   rviz::Panel::load(config);
 }
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(obstacle_detector::ScansMergerPanel, rviz::Panel)
+PLUGINLIB_EXPORT_CLASS(lidar_obstacle_detection::DetectPanel, rviz::Panel)

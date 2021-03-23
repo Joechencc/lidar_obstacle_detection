@@ -48,14 +48,14 @@
 #include <QPushButton>
 #include <QLabel>
 
-namespace obstacle_detector
+namespace lidar_obstacle_detection
 {
 
-class ScansMergerPanel : public rviz::Panel
+class DetectPanel : public rviz::Panel
 {
 Q_OBJECT
 public:
-  ScansMergerPanel(QWidget* parent = 0);
+  DetectPanel(QWidget* parent = 0);
 
   virtual void load(const rviz::Config& config);
   virtual void save(rviz::Config config) const;
@@ -111,4 +111,4 @@ private:
   std::string p_target_frame_id_;
 };
 
-} // namespace obstacle_detector
+} // namespace lidar_obstacle_detection

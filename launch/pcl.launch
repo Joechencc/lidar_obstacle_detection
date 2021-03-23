@@ -8,6 +8,7 @@
 
 
   <node name="detect" pkg="lidar_obstacle_detection" type="main">
+    
   </node>
 
   <!-- <node name="detect" pkg="nodelet" type="nodelet" args="load lidar_obstacle_detection/Detect nodelet_manager">

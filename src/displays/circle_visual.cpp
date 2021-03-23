@@ -33,9 +33,9 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/displays/circle_visual.h"
+#include "lidar_obstacle_detection/displays/circle_visual.h"
 
-namespace obstacles_display
+namespace lidar_obstacle_display
 {
 
 CircleVisual::CircleVisual(Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node) {
@@ -52,7 +52,7 @@ CircleVisual::~CircleVisual() {
   scene_manager_->destroySceneNode(frame_node_2_);
 }
 
-void CircleVisual::setData(const obstacle_detector::CircleObstacle& circle) {
+void CircleVisual::setData(const lidar_obstacle_detection::CircleObstacle& circle) {
   Ogre::Vector3 pos(circle.center.x, circle.center.y, 0.25);
   obstacle_->setPosition(pos);
 
@@ -90,5 +90,5 @@ void CircleVisual::setMarginColor(float r, float g, float b, float a) {
   margin_->setColor(r, g, b, a);
 }
 
-} // end namespace obstacles_display
+} // end namespace lidar_obstacle_display
 

@@ -39,7 +39,7 @@
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 
-#include <obstacle_detector/Obstacles.h>
+#include <lidar_obstacle_detection/Obstacles.h>
 #include <tf/transform_listener.h>
 
 #include <rviz/properties/color_property.h>
@@ -48,19 +48,19 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/frame_manager.h>
 
-#include "obstacle_detector/displays/circle_visual.h"
-#include "obstacle_detector/displays/segment_visual.h"
+#include "lidar_obstacle_detection/displays/circle_visual.h"
+#include "lidar_obstacle_detection/displays/segment_visual.h"
 #endif
 
-namespace obstacles_display
+namespace lidar_obstacle_display
 {
 
-class ObstaclesDisplay: public rviz::MessageFilterDisplay<obstacle_detector::Obstacles>
+class LObstaclesDisplay: public rviz::MessageFilterDisplay<lidar_obstacle_detection::Obstacles>
 {
 Q_OBJECT
 public:
-  ObstaclesDisplay();
-  virtual ~ObstaclesDisplay();
+  LObstaclesDisplay();
+  virtual ~LObstaclesDisplay();
 
 protected:
   virtual void onInitialize();
@@ -73,7 +73,7 @@ private Q_SLOTS:
   void updateThickness();
 
 private:
-  void processMessage(const obstacle_detector::Obstacles::ConstPtr& obstacles_msg);
+  void processMessage(const lidar_obstacle_detection::Obstacles::ConstPtr& obstacles_msg);
 
   std::vector< boost::shared_ptr<CircleVisual> > circle_visuals_;
   std::vector< boost::shared_ptr<SegmentVisual> > segment_visuals_;
@@ -85,4 +85,4 @@ private:
   rviz::FloatProperty* thickness_property_;
 };
 
-} // end namespace obstacles_display
+} // end namespace lidar_obstacle_display

@@ -33,12 +33,12 @@
  * Author: Mateusz Przybyla
  */
 
-#include "obstacle_detector/displays/obstacles_display.h"
+#include "lidar_obstacle_detection/displays/obstacles_display.h"
 
-namespace obstacles_display
+namespace lidar_obstacle_display
 {
 
-ObstaclesDisplay::ObstaclesDisplay() {
+LObstaclesDisplay::LObstaclesDisplay() {
   circle_color_property_ = new rviz::ColorProperty("Circles color", QColor(170, 0, 0), "Color of circles.", this, SLOT(updateCircleColor()));
   margin_color_property_ = new rviz::ColorProperty("Margin color", QColor(0, 170, 0), "Color of margin added around circles.", this, SLOT(updateCircleColor()));
   segment_color_property_ = new rviz::ColorProperty("Segments color", QColor(170, 170, 0), "Color of segments.", this, SLOT(updateSegmentColor()));
@@ -46,19 +46,19 @@ ObstaclesDisplay::ObstaclesDisplay() {
   thickness_property_ = new rviz::FloatProperty("Segments thickness", 0.03f, "Width of the segments in meters.", this, SLOT(updateThickness()));
 }
 
-void ObstaclesDisplay::onInitialize() {
-  MessageFilterDisplay<obstacle_detector::Obstacles>::onInitialize();
+void LObstaclesDisplay::onInitialize() {
+  MessageFilterDisplay<lidar_obstacle_detection::Obstacles>::onInitialize();
 }
 
-ObstaclesDisplay::~ObstaclesDisplay() {}
+LObstaclesDisplay::~LObstaclesDisplay() {}
 
-void ObstaclesDisplay::reset() {
-  MessageFilterDisplay<obstacle_detector::Obstacles>::reset();
+void LObstaclesDisplay::reset() {
+  MessageFilterDisplay<lidar_obstacle_detection::Obstacles>::reset();
   circle_visuals_.clear();
   segment_visuals_.clear();
 }
 
-void ObstaclesDisplay::updateCircleColor() {
+void LObstaclesDisplay::updateCircleColor() {
   float alpha = alpha_property_->getFloat();
   Ogre::ColourValue main_color = circle_color_property_->getOgreColor();
   Ogre::ColourValue margin_color = margin_color_property_->getOgreColor();
@@ -69,7 +69,7 @@ void ObstaclesDisplay::updateCircleColor() {
   }
 }
 
-void ObstaclesDisplay::updateSegmentColor() {
+void LObstaclesDisplay::updateSegmentColor() {
   float alpha = alpha_property_->getFloat();
   Ogre::ColourValue color = segment_color_property_->getOgreColor();
 
@@ -77,19 +77,19 @@ void ObstaclesDisplay::updateSegmentColor() {
     s->setColor(color.r, color.g, color.b, alpha);
 }
 
-void ObstaclesDisplay::updateAlpha() {
+void LObstaclesDisplay::updateAlpha() {
   updateCircleColor();
   updateSegmentColor();
 }
 
-void ObstaclesDisplay::updateThickness() {
+void LObstaclesDisplay::updateThickness() {
   float width = thickness_property_->getFloat();
 
   for (auto& s : segment_visuals_)
     s->setWidth(width);
 }
 
-void ObstaclesDisplay::processMessage(const obstacle_detector::Obstacles::ConstPtr& obstacles_msg) {
+void LObstaclesDisplay::processMessage(const lidar_obstacle_detection::Obstacles::ConstPtr& obstacles_msg) {
   circle_visuals_.clear();
   segment_visuals_.clear();
 
@@ -126,8 +126,8 @@ void ObstaclesDisplay::processMessage(const obstacle_detector::Obstacles::ConstP
   updateThickness();
 }
 
-} // end namespace obstacles_display
+} // end namespace lidar_obstacle_display
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(obstacles_display::ObstaclesDisplay, rviz::Display)
+PLUGINLIB_EXPORT_CLASS(obstacles_display::LObstaclesDisplay, rviz::Display)
 
