@@ -1,13 +1,15 @@
 <launch>
-  <param name="use_sim_time" value="true"/>  
-  <node name="scans_demo" pkg="rosbag" type="play" output="screen" args="--clock --loop $(find lidar_obstacle_detection)/resources/scans_demo.bag"/>
+  <!-- <param name="use_sim_time" value="true"/>   -->
+  <node name="map_to_os_fix" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 map os_sensor"/>
+
+  <node name="scans_demo" pkg="rosbag" type="play"  args="--clock --loop $(find lidar_obstacle_detection)/resources/scans_demo.bag"/>
 
   <node name="nodelet_manager" pkg="nodelet" type="nodelet" args="manager" output="screen">
     <param name="num_worker_threads" value="20"/>
   </node>
 
 
-  <node name="detect" pkg="lidar_obstacle_detection" type="main">
+  <node name="detect" pkg="lidar_obstacle_detection" type="main" output="screen">
     
   </node>
 
@@ -30,6 +32,6 @@
     <param name="target_frame_id"   value="robot"/>
   </node> -->
 
-  <node name="rviz" pkg="rviz" type="rviz" output="screen"/>
+  <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find lidar_obstacle_detection)/resources/lidar_obstacle_detector.rviz"/>
 
 </launch>
