@@ -30,6 +30,6 @@
     <param name="target_frame_id"   value="robot"/>
   </node> -->
 
-  <node name="rviz" pkg="rviz" type="rviz" output="screen"/>
+  <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find lidar_obstacle_detection)/resources/lidar_obstacle_detector.rviz"/>
 
 </launch>
