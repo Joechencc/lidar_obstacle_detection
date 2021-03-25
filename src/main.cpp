@@ -411,7 +411,7 @@ void myImages::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
     ////////////////////////////// 
 
     // Render road (segmented from original point cloud) in the viewer
-    renderPointCloud(this->viewer_processing,road_cloud,"planeCloud",Color(0,1,0));
+    renderPointCloud(this->viewer_processing,road_cloud,"planeCloud",Color(1,1,1));
 
     // Create clusters of obstacle from raw points
     std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters = create_clusters(obstacle_cloud);
