@@ -2,13 +2,29 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(lidar_obstacle_detection)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ ")
-
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(PCL 1.2 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp roslaunch nodelet rviz std_msgs std_srvs geometry_msgs sensor_msgs tf laser_geometry message_generation)
 
 SET(CMAKE_MODULE_PATH ${${PROJECT_NAME}_SOURCE_DIR}/cmake)
 
+
+FILE(GLOB rosMsgFiles RELATIVE "${${PROJECT_NAME}_SOURCE_DIR}/msg" 
+    "${${PROJECT_NAME}_SOURCE_DIR}/msg/*.msg")
+
+FOREACH(rosMsg ${rosMsgFiles})
+    MESSAGE( STATUS "Processing message file: ${rosMsg}" )
+    add_message_files( FILES ${rosMsg})
+ENDFOREACH(rosMsg)
+
+generate_messages(
+   DEPENDENCIES
+   std_msgs#   std_msgs
+   sensor_msgs
+)
+ 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}_nodelets ${PROJECT_NAME}_gui
