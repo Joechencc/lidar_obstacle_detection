@@ -26,6 +26,10 @@
 #include "ros/ros.h"
 #include <sensor_msgs/PointCloud2.h>
 #include "lidar_obstacle_detection/pclarray.h"
+#include "lidar_obstacle_detection/box.h"
+#include "lidar_obstacle_detection/boxes.h"
+
+
 #include <pcl_ros/transforms.h>
 
 
@@ -54,18 +58,18 @@ struct Color
 	{}
 };
 
-struct Box
+struct Box_type
 {
-	float x_min;
-	float y_min;
-	float z_min;
-	float x_max;
-	float y_max;
-	float z_max;
+	double x_min;
+	double y_min;
+	double z_min;
+	double x_max;
+	double y_max;
+	double z_max;
 };
 
 
-Box BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
+Box_type BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
 {
 
     // Find bounding box for one of the clusters
@@ -73,7 +77,7 @@ Box BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
     /*Get min and max coordinates in the cluster*/
     pcl::getMinMax3D(*cluster, minPoint, maxPoint);
 
-    Box box;
+    Box_type box;
     box.x_min = minPoint.x;
     box.y_min = minPoint.y;
     box.z_min = minPoint.z;
@@ -85,7 +89,27 @@ Box BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
 	return box;
 }
 
-void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box box, int id, Color color, float opacity)
+lidar_obstacle_detection::box BoundingBox_new(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
+{
+
+    // Find bounding box for one of the clusters
+    pcl::PointXYZ minPoint, maxPoint;
+    /*Get min and max coordinates in the cluster*/
+    pcl::getMinMax3D(*cluster, minPoint, maxPoint);
+
+    lidar_obstacle_detection::box box;
+    box.x_min = minPoint.x;
+    box.y_min = minPoint.y;
+    box.z_min = minPoint.z;
+    box.x_max = maxPoint.x;
+    box.y_max = maxPoint.y;
+    box.z_max = maxPoint.z;
+
+
+	return box;
+}
+
+void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box_type box, int id, Color color, float opacity)
 {
     // Limit opacity range between 0.0 and 1.0
 	if(opacity > 1.0){
@@ -271,10 +295,10 @@ std::tuple<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::
 
 // Create clusters based on distance of points. 
 // KD Tree based on euclidean distance is used to cluster points into cluster of obstacles
-std::vector<sensor_msgs::PointCloud2> create_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
+std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> create_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
 
     // Array to store individual clusters
-    std::vector<sensor_msgs::PointCloud2> clusters;
+    std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters;
     sensor_msgs::PointCloud2 rosCloud;
 
 
@@ -311,9 +335,9 @@ std::vector<sensor_msgs::PointCloud2> create_clusters(pcl::PointCloud<pcl::Point
 
         // std::cout<< "Cluster with " << cloud_cluster->points.size() << " points" << std::endl;
         // pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclCloud (new pcl::PointCloud<pcl::PointXYZRGB>); // creates a shared pointer
-        pcl::toROSMsg(*cloud_cluster, rosCloud);
+        // pcl::toROSMsg(*cloud_cluster, rosCloud);
 
-        clusters.push_back(rosCloud);
+        clusters.push_back(cloud_cluster);
     
     }
 
@@ -331,12 +355,28 @@ void render_all_boxes(pcl::visualization::PCLVisualizer::Ptr& viewer, std::vecto
 
         renderPointCloud(viewer, cluster,"obstCloud"+std::to_string(clusterId),Color(1,1,0));
 
-        Box box = BoundingBox(cluster);
+        Box_type box = BoundingBox(cluster);
         renderBox(viewer,box,clusterId,Color(0.9,0,0), 0.5f);
 
         ++clusterId;
         }
 
+    
+}
+
+// Obtain all boxes 
+
+lidar_obstacle_detection::boxes obtain_all_boxes(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters){
+
+    lidar_obstacle_detection::boxes boxes;
+
+
+    for(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster : clusters)
+        {
+            lidar_obstacle_detection::box box = BoundingBox_new(cluster);
+            boxes.boxes.push_back(box);
+        }
+    return boxes;
     
 }
 
@@ -433,12 +473,14 @@ void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
 
         // // Create clusters of obstacle from raw points
         // create_clusters(obstacle_cloud);
-        std::vector<sensor_msgs::PointCloud2> clusters = create_clusters(obstacle_cloud);
-        lidar_obstacle_detection::pclarray pclarray;
-        pclarray.cloudarray = clusters;
+        std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters = create_clusters(obstacle_cloud);
+        lidar_obstacle_detection::boxes new_boxes = obtain_all_boxes(clusters);
+
+        // lidar_obstacle_detection::pclarray pclarray;
+        // pclarray.cloudarray = clusters;
         
-        ros::Publisher pc_pub_3 = n.advertise<lidar_obstacle_detection::pclarray>("/clutters", 1);
-        pc_pub_3.publish(pclarray);
+        ros::Publisher pc_pub_3 = n.advertise<lidar_obstacle_detection::boxes>("/boxes", 1);
+        pc_pub_3.publish(new_boxes);
 
         // // Render bounding box around obstacles
         // render_all_boxes(this->viewer_processing,clusters);
