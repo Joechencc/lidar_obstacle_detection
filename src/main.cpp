@@ -26,8 +26,8 @@
 #include "ros/ros.h"
 #include <sensor_msgs/PointCloud2.h>
 #include "lidar_obstacle_detection/pclarray.h"
-#include "lidar_obstacle_detection/box.h"
-#include "lidar_obstacle_detection/boxes.h"
+#include "lidar_obstacle_detection/GDXBoxMessage.h"
+#include "lidar_obstacle_detection/GDXBoxesMessage.h"
 
 
 #include <pcl_ros/transforms.h>
@@ -89,7 +89,7 @@ Box_type BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
 	return box;
 }
 
-lidar_obstacle_detection::box BoundingBox_new(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
+lidar_obstacle_detection::GDXBoxMessage BoundingBox_new(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
 {
 
     // Find bounding box for one of the clusters
@@ -97,7 +97,7 @@ lidar_obstacle_detection::box BoundingBox_new(pcl::PointCloud<pcl::PointXYZ>::Pt
     /*Get min and max coordinates in the cluster*/
     pcl::getMinMax3D(*cluster, minPoint, maxPoint);
 
-    lidar_obstacle_detection::box box;
+    lidar_obstacle_detection::GDXBoxMessage box;
     box.x_min = minPoint.x;
     box.y_min = minPoint.y;
     box.z_min = minPoint.z;
@@ -366,14 +366,14 @@ void render_all_boxes(pcl::visualization::PCLVisualizer::Ptr& viewer, std::vecto
 
 // Obtain all boxes 
 
-lidar_obstacle_detection::boxes obtain_all_boxes(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters){
+lidar_obstacle_detection::GDXBoxesMessage obtain_all_boxes(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters){
 
-    lidar_obstacle_detection::boxes boxes;
+    lidar_obstacle_detection::GDXBoxesMessage boxes;
 
 
     for(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster : clusters)
         {
-            lidar_obstacle_detection::box box = BoundingBox_new(cluster);
+            lidar_obstacle_detection::GDXBoxMessage box = BoundingBox_new(cluster);
             boxes.boxes.push_back(box);
         }
     return boxes;
@@ -474,13 +474,17 @@ void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
         // // Create clusters of obstacle from raw points
         // create_clusters(obstacle_cloud);
         std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters = create_clusters(obstacle_cloud);
-        lidar_obstacle_detection::boxes new_boxes = obtain_all_boxes(clusters);
+        lidar_obstacle_detection::GDXBoxesMessage new_boxes = obtain_all_boxes(clusters);
 
         // lidar_obstacle_detection::pclarray pclarray;
         // pclarray.cloudarray = clusters;
         
-        ros::Publisher pc_pub_3 = n.advertise<lidar_obstacle_detection::boxes>("/boxes", 1);
+        ros::Publisher pc_pub_3 = n.advertise<lidar_obstacle_detection::GDXBoxesMessage>("/boxes", 1);
         pc_pub_3.publish(new_boxes);
+
+        lidar_obstacle_detection::GDXBoxMessage new_box = new_boxes.boxes[0];
+        ros::Publisher pc_pub_4 = n.advertise<lidar_obstacle_detection::GDXBoxMessage>("/box", 1);
+        pc_pub_4.publish(new_box);
 
         // // Render bounding box around obstacles
         // render_all_boxes(this->viewer_processing,clusters);
