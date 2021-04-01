@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(PCL 1.2 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp roslaunch nodelet rviz std_msgs std_srvs geometry_msgs sensor_msgs tf laser_geometry message_generation)
 
+
 SET(CMAKE_MODULE_PATH ${${PROJECT_NAME}_SOURCE_DIR}/cmake)
 
 
@@ -18,6 +19,7 @@ FOREACH(rosMsg ${rosMsgFiles})
     MESSAGE( STATUS "Processing message file: ${rosMsg}" )
     add_message_files( FILES ${rosMsg})
 ENDFOREACH(rosMsg)
+
 
 generate_messages(
    DEPENDENCIES
@@ -36,6 +38,7 @@ include_directories(
     include
     ${${PROJECT_NAME}_SOURCE_DIR}
     ${catkin_INCLUDE_DIRS} 
+    ${JAVA_MSG_PATH}
 )
 
 #

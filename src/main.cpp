@@ -60,12 +60,12 @@ struct Color
 
 struct Box_type
 {
-	double x_min;
-	double y_min;
-	double z_min;
-	double x_max;
-	double y_max;
-	double z_max;
+	double xMin;
+	double yMin;
+	double zMin;
+	double xMax;
+	double yMax;
+	double zMax;
 };
 
 
@@ -78,12 +78,12 @@ Box_type BoundingBox(pcl::PointCloud<pcl::PointXYZ>::Ptr cluster)
     pcl::getMinMax3D(*cluster, minPoint, maxPoint);
 
     Box_type box;
-    box.x_min = minPoint.x;
-    box.y_min = minPoint.y;
-    box.z_min = minPoint.z;
-    box.x_max = maxPoint.x;
-    box.y_max = maxPoint.y;
-    box.z_max = maxPoint.z;
+    box.xMin = minPoint.x;
+    box.yMin = minPoint.y;
+    box.zMin = minPoint.z;
+    box.xMax = maxPoint.x;
+    box.yMax = maxPoint.y;
+    box.zMax = maxPoint.z;
 
 
 	return box;
@@ -98,12 +98,12 @@ lidar_obstacle_detection::GDXBoxMessage BoundingBox_new(pcl::PointCloud<pcl::Poi
     pcl::getMinMax3D(*cluster, minPoint, maxPoint);
 
     lidar_obstacle_detection::GDXBoxMessage box;
-    box.x_min = minPoint.x;
-    box.y_min = minPoint.y;
-    box.z_min = minPoint.z;
-    box.x_max = maxPoint.x;
-    box.y_max = maxPoint.y;
-    box.z_max = maxPoint.z;
+    box.xMin = minPoint.x;
+    box.yMin = minPoint.y;
+    box.zMin = minPoint.z;
+    box.xMax = maxPoint.x;
+    box.yMax = maxPoint.y;
+    box.zMax = maxPoint.z;
 
 
 	return box;
@@ -122,14 +122,14 @@ void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box_type box, int
     // Render a bounding box
 	std::string cube = "box"+std::to_string(id);
     //viewer->addCube(box.bboxTransform, box.bboxQuaternion, box.cube_length, box.cube_width, box.cube_height, cube);
-    viewer->addCube(box.x_min, box.x_max, box.y_min, box.y_max, box.z_min, box.z_max, color.r, color.g, color.b, cube);
+    viewer->addCube(box.xMin, box.xMax, box.yMin, box.yMax, box.zMin, box.zMax, color.r, color.g, color.b, cube);
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME, cube); 
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, cube);
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, opacity, cube);
     
     std::string cubeFill = "boxFill"+std::to_string(id);
     //viewer->addCube(box.bboxTransform, box.bboxQuaternion, box.cube_length, box.cube_width, box.cube_height, cubeFill);
-    viewer->addCube(box.x_min, box.x_max, box.y_min, box.y_max, box.z_min, box.z_max, color.r, color.g, color.b, cubeFill);
+    viewer->addCube(box.xMin, box.xMax, box.yMin, box.yMax, box.zMin, box.zMax, color.r, color.g, color.b, cubeFill);
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, cubeFill); 
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, cubeFill);
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, opacity*0.3, cubeFill);

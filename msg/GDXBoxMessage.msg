@@ -1,6 +1,6 @@
-float64 x_min
-float64 y_min
-float64 z_min
-float64 x_max
-float64 y_max
-float64 z_max
+float64 xMin
+float64 yMin
+float64 zMin
+float64 xMax
+float64 yMax
+float64 zMax
