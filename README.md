@@ -27,10 +27,9 @@ The following animation shows the segmented point clouds - obstacles (in yellow)
 The project is written in C++ and it is wrapped in ROS. So follow the below step:
 1. source ~/catkin_ws/devel/setup.bash
 2. Put an rosbag in /resources named as scans_demo.bag (or you can modify launch file)
-
-  2.1 The rosbag should contain topic "/os_cloud_node/points" with "sensor_msgs::PointCloud2" sensor type
-3. roslaunch lidar_obstacle_detection pcl.launch
-4. You should be able to see the below graph.
+3. Note that the rosbag should contain topic "/os_cloud_node/points" with "sensor_msgs::PointCloud2" sensor type
+4. roslaunch lidar_obstacle_detection pcl.launch
+5. You should be able to see the below graph.
 
 ![alt text](assets/Rviz.png)
 
