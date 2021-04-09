@@ -32,9 +32,14 @@ The project is written in C++ and it is wrapped in ROS. So follow the below step
 ![alt text](assets/Rviz.png)
 
 ## Rostopic published and subscribed
-/TunningParam                  : Tunning parameters for external control (communication completed, but not setup with actual parameters yet) \n
-/box                           : First box from /boxes topics (for testing) \n
-/boxes                         : /boxes customerized message topics include all bounding box calculated and expressed in two diagonal points (minPoint, maxPoint)\n
-/downsampled_cloud_obstacle    : Downsampled pointcloud for obstacle \n
-/downsampled_cloud_road        : Downsampled pointcloud for road \n
+/TunningParam                  : Tunning parameters for external control (communication completed, but not setup with actual parameters yet) 
+
+/box                           : First box from /boxes topics (for testing) 
+
+/boxes                         : /boxes customerized message topics include all bounding box calculated and expressed in two diagonal points (minPoint, maxPoint)
+
+/downsampled_cloud_obstacle    : Downsampled pointcloud for obstacle 
+
+/downsampled_cloud_road        : Downsampled pointcloud for road 
+
 
