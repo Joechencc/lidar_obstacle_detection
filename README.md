@@ -44,4 +44,6 @@ The project is written in C++ and it is wrapped in ROS. So follow the below step
 
 /downsampled_cloud_road        : Downsampled pointcloud for road 
 
+/os_cloud_node/points          : input pointcloud
+
 
