@@ -30,3 +30,11 @@ The project is written in C++ and it is wrapped in ROS. So follow the below step
 3. You should be able to see the below graph.
 
 ![alt text](assets/Rviz.png)
+
+## Rostopic published and subscribed
+/TunningParam                  : Tunning parameters for external control (communication completed, but not setup with actual parameters yet)
+/box                           : First box from /boxes topics (for testing)
+/boxes                         : /boxes customerized message topics include all bounding box calculated and expressed in two diagonal points (minPoint, maxPoint)
+/downsampled_cloud_obstacle    : Downsampled pointcloud for obstacle 
+/downsampled_cloud_road        : Downsampled pointcloud for road 
+
