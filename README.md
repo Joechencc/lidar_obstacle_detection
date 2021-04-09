@@ -22,3 +22,11 @@ The following animation shows the segmented point clouds - obstacles (in yellow)
 ## Closing thoughts
 1. Tracking can used to keep a record of obstacles throughout all the point clouds.
 2. 3D Object detection can further aid in determining the type of obstacle (car, traffic signal pole, etc.).
+
+## Running Steps
+The project is written in C++ and it is wrapped in ROS. So follow the below step:
+1. source ~/catkin_ws/devel/setup.bash
+2. roslaunch lidar_obstacle_detection pcl.launch
+3. You should be able to see the below graph.
+
+![alt text](assets/RVIZ.png)
