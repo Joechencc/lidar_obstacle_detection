@@ -29,4 +29,4 @@ The project is written in C++ and it is wrapped in ROS. So follow the below step
 2. roslaunch lidar_obstacle_detection pcl.launch
 3. You should be able to see the below graph.
 
-![alt text](assets/RVIZ.png)
+![alt text](assets/Rviz.png)
