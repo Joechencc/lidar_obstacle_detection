@@ -28,6 +28,8 @@
 #include "lidar_obstacle_detection/pclarray.h"
 #include "lidar_obstacle_detection/GDXBoxMessage.h"
 #include "lidar_obstacle_detection/GDXBoxesMessage.h"
+#include "lidar_obstacle_detection/TunningParam.h"
+
 
 
 #include <pcl_ros/transforms.h>
@@ -104,6 +106,10 @@ lidar_obstacle_detection::GDXBoxMessage BoundingBox_new(pcl::PointCloud<pcl::Poi
     box.xMax = maxPoint.x;
     box.yMax = maxPoint.y;
     box.zMax = maxPoint.z;
+    
+    assert(minPoint.x < maxPoint.x);
+    assert(minPoint.y < maxPoint.y);
+    assert(minPoint.z < maxPoint.z);
 
 
 	return box;
@@ -409,6 +415,10 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr loadPcd(std::string file)
     return cloud;
 }
 
+void TunerCallback(const lidar_obstacle_detection::TunningParam::ConstPtr& msg) {
+    std::cout << msg->tunningParam1 << std::endl;
+}
+
 // void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::vector<boost::filesystem::path>& stream, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, pcl::visualization::PCLVisualizer::Ptr& viewer_processing) {
 void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
     // auto streamIterator = this->stream.begin();
@@ -421,86 +431,91 @@ void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
     ros::Rate loop_rate(10);
     ros::NodeHandle n;
     ros::Publisher pc_pub = n.advertise<PointCloud>("/downsampled_cloud_road", 1);
+    int threshold = 1000;
     while (ros::ok())
     {
 
         pcl::PCLPointCloud2 pcl_pc2;
-        pcl_conversions::toPCL(*msg,pcl_pc2);
-        pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-        pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
+        // ROS_INFO("point_cloud_size: %ld" , );
+        if (msg->data.size() << threshold){
+            
+        }
+        else{
+            pcl_conversions::toPCL(*msg,pcl_pc2);
+            pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+            pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = temp_cloud;
+            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = temp_cloud;
 
-        // Output cloud for downsampled cloud
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+            // Output cloud for downsampled cloud
+            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
 
-        // Downsample the point cloud to lower memory usage and faster processing
-        cloud_filtered = downsample_cloud(cloud,0.15f);
+            // Downsample the point cloud to lower memory usage and faster processing
+            cloud_filtered = downsample_cloud(cloud,0.15f);
 
-        // Crop point cloud to relevant area
-        cloud_filtered = crop_cloud(cloud_filtered,Eigen::Vector4f(-21, -7, -3, 1),Eigen::Vector4f( 31, 8, 6, 1));
+            // Crop point cloud to relevant area
+            cloud_filtered = crop_cloud(cloud_filtered,Eigen::Vector4f(-21, -7, -3, 1),Eigen::Vector4f( 31, 8, 6, 1));
 
-        // Remove car roof points 
-        cloud_filtered = remove_roof(cloud_filtered,Eigen::Vector4f(-1.4,-1.6,-1,1), Eigen::Vector4f(2.5,1.6,-0.4,1));
+            // Remove car roof points 
+            cloud_filtered = remove_roof(cloud_filtered,Eigen::Vector4f(-1.4,-1.6,-1,1), Eigen::Vector4f(2.5,1.6,-0.4,1));
 
-        // Segment obstacles and road
-        std::tuple<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segmented_clouds;
-        segmented_clouds = segment_clouds(cloud_filtered);
+            // Segment obstacles and road
+            std::tuple<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segmented_clouds;
+            segmented_clouds = segment_clouds(cloud_filtered);
 
-        // Store segmented point clouds in individual PointXYZ cloud
-        PointCloud::Ptr road_cloud = std::get<0>(segmented_clouds);
-        PointCloud::Ptr obstacle_cloud = std::get<1>(segmented_clouds);
-        
-        //////////////////////// test
+            // Store segmented point clouds in individual PointXYZ cloud
+            PointCloud::Ptr road_cloud = std::get<0>(segmented_clouds);
+            PointCloud::Ptr obstacle_cloud = std::get<1>(segmented_clouds);
+            
+            //////////////////////// test
 
-        // std::cout << "cloud_size:::" <<  road_cloud->points.size()<< std::endl;
-        // for (unsigned int i=0; i < road_cloud->points.size() ; i=i+1) {
-        //     std::cout << "pointx::"<< road_cloud->points[i].x << std::endl;
-        // }
+            // std::cout << "cloud_size:::" <<  road_cloud->points.size()<< std::endl;
+            // for (unsigned int i=0; i < road_cloud->points.size() ; i=i+1) {
+            //     std::cout << "pointx::"<< road_cloud->points[i].x << std::endl;
+            // }
 
-        pc_pub.publish(*road_cloud);
+            pc_pub.publish(*road_cloud);
 
-        ros::Publisher pc_pub_2 = n.advertise<PointCloud>("/downsampled_cloud_obstacle", 1);
-        pc_pub_2.publish(*obstacle_cloud);
-        // ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
-        // pc_pub.publish(*road_cloud);
-
-
-        ////////////////////////////// 
-
-        // // Render road (segmented from original point cloud) in the viewer
-        // renderPointCloud(this->viewer_processing,road_cloud,"planeCloud",Color(1,1,1));
-
-        // // Create clusters of obstacle from raw points
-        // create_clusters(obstacle_cloud);
-        std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters = create_clusters(obstacle_cloud);
-        lidar_obstacle_detection::GDXBoxesMessage new_boxes = obtain_all_boxes(clusters);
-
-        // lidar_obstacle_detection::pclarray pclarray;
-        // pclarray.cloudarray = clusters;
-        
-        ros::Publisher pc_pub_3 = n.advertise<lidar_obstacle_detection::GDXBoxesMessage>("/boxes", 1);
-        pc_pub_3.publish(new_boxes);
-
-        lidar_obstacle_detection::GDXBoxMessage new_box = new_boxes.boxes[0];
-        ros::Publisher pc_pub_4 = n.advertise<lidar_obstacle_detection::GDXBoxMessage>("/box", 1);
-        pc_pub_4.publish(new_box);
-
-        // // Render bounding box around obstacles
-        // render_all_boxes(this->viewer_processing,clusters);
-
-        // // Sleep for 40ms to slow down the viewer
-        // std::this_thread::sleep_for(std::chrono::milliseconds(40));
-
-        // // Go to the next point cloud
-        // // streamIterator++;
-
-        // // If stream reaches the last point cloud, then start again from the first point cloud
-        // // if(streamIterator == this->stream.end())
-        // //     streamIterator = this->stream.begin();
-        // this->viewer_processing->spinOnce();
+            ros::Publisher pc_pub_2 = n.advertise<PointCloud>("/downsampled_cloud_obstacle", 1);
+            pc_pub_2.publish(*obstacle_cloud);
+            // ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
+            // pc_pub.publish(*road_cloud);
 
 
+            ////////////////////////////// 
+
+            // // Render road (segmented from original point cloud) in the viewer
+            // renderPointCloud(this->viewer_processing,road_cloud,"planeCloud",Color(1,1,1));
+
+            // // Create clusters of obstacle from raw points
+            // create_clusters(obstacle_cloud);
+            std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters = create_clusters(obstacle_cloud);
+            lidar_obstacle_detection::GDXBoxesMessage new_boxes = obtain_all_boxes(clusters);
+
+            // lidar_obstacle_detection::pclarray pclarray;
+            // pclarray.cloudarray = clusters;
+            
+            ros::Publisher pc_pub_3 = n.advertise<lidar_obstacle_detection::GDXBoxesMessage>("/boxes", 1);
+            pc_pub_3.publish(new_boxes);
+
+            lidar_obstacle_detection::GDXBoxMessage new_box = new_boxes.boxes[0];
+            ros::Publisher pc_pub_4 = n.advertise<lidar_obstacle_detection::GDXBoxMessage>("/box", 1);
+            pc_pub_4.publish(new_box);
+
+            // // Render bounding box around obstacles
+            // render_all_boxes(this->viewer_processing,clusters);
+
+            // // Sleep for 40ms to slow down the viewer
+            // std::this_thread::sleep_for(std::chrono::milliseconds(40));
+
+            // // Go to the next point cloud
+            // // streamIterator++;
+
+            // // If stream reaches the last point cloud, then start again from the first point cloud
+            // // if(streamIterator == this->stream.end())
+            // //     streamIterator = this->stream.begin();
+            // this->viewer_processing->spinOnce();
+        }
         ros::spinOnce();
         loop_rate.sleep();
     }
@@ -530,6 +545,8 @@ int main(int argc, char **argv){
     ros::init(argc, argv, "listener");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("/os_cloud_node/points", 1, pointcloudCallback);
+    ros::Subscriber sub2 = n.subscribe("/TunningParam", 1, TunerCallback);
+
     ros::Rate loop_rate(10);
 
     // , stream, cloud, viewer_processing
